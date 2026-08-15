@@ -4,222 +4,208 @@
 
 /* ---------- Общие ---------- */
 body {
-    background: #fdf2f8;
-    font-family: Arial, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
+  background: #fdf2f8;
+  font-family: Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 /* ---------- Свинья ---------- */
 .piggy-image {
-    width: 200px;
-    height: 200px;
-    object-fit: contain;
-    cursor: pointer;
-    transition: transform 0.1s;
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: transform 0.1s;
 }
 
 .piggy-image:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
 
 /* ---------- Монетка ---------- */
 #coin {
-    position: fixed;
-    display: none;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    will-change: transform;
-    background: radial-gradient(circle at 35% 30%, #ffe97a, #f5b700, #b8860b);
-    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.6),
-        inset 0 -4px 8px rgba(0, 0, 0, 0.3),
-        inset 0 4px 8px rgba(255, 255, 200, 0.6);
-    transform-style: preserve-3d;
+  position: fixed;
+  display: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform;
+
+  background: radial-gradient(circle at 35% 30%, #ffe97a, #f5b700, #b8860b);
+  box-shadow:
+    0 4px 20px rgba(255, 215, 0, 0.6),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 4px 8px rgba(255, 255, 200, 0.6);
+  transform-style: preserve-3d;
 }
 
 /* ---------- Прогресс-бар ---------- */
 .progress-container {
-    width: 80%;
-    max-width: 400px;
-    height: 24px;
-    margin: 16px auto;
-    background: #fbcfe8;
-    border-radius: 30px;
-    overflow: hidden;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative;
+  position: relative;
+  width: 80%;
+  max-width: 400px;
+  height: 24px;
+  margin: 16px auto;
+  background: #fbcfe8;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #fbbf24, #f59e0b);
-    border-radius: 30px;
-    transition: width 0.5s ease;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  border-radius: 30px;
+  transition: width 0.5s ease;
 }
 
-/* Процент — всегда в правой части контейнера */
 .percent-text {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    font-size: 14px;
-    font-weight: bold;
-    color: #7c2d12;
-    pointer-events: none;
-    z-index: 2;
-    text-shadow: 0 1px 4px rgba(255, 255, 255, 0.6);
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: bold;
+  color: #7c2d12;
+  pointer-events: none;
+  z-index: 2;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.6);
 }
 
 /* ---------- Кнопки ---------- */
 .btn-primary,
 .btn-secondary {
-    padding: 12px 32px;
-    font-size: 18px;
-    font-weight: bold;
-    border: none;
-    border-radius: 40px;
-    cursor: pointer;
-    transition: 0.2s;
-    min-width: 160px;
+  padding: 12px 32px;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: 0.2s;
+  min-width: 160px;
 }
 
 .btn-primary {
-    color: #fff;
-    background: #ec4899;
-    box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  color: #fff;
+  background: #ec4899;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
 }
 
 .btn-primary:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
 
 .btn-secondary {
-    color: #1f2937;
-    background: #d1d5db;
+  color: #1f2937;
+  background: #d1d5db;
 }
 
 .btn-secondary:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
 
 /* ---------- Текст ---------- */
 .balance-text {
-    font-size: 28px;
-    font-weight: 800;
-    color: #7c2d12;
+  font-size: 28px;
+  font-weight: 800;
+  color: #7c2d12;
 }
 
 .status-text {
-    min-height: 20px;
-    margin-top: 4px;
-    font-size: 14px;
-    color: #9ca3af;
-    transition: opacity 0.3s ease;
+  min-height: 20px;
+  margin-top: 4px;
+  font-size: 14px;
+  color: #9ca3af;
+  transition: opacity 0.3s ease;
 }
 
 /* ---------- Адаптивность ---------- */
 @media (max-width: 768px) {
-    .piggy-image {
-        width: 160px;
-        height: 160px;
-    }
-
-    .balance-text {
-        font-size: 24px;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-        padding: 10px 24px;
-        font-size: 16px;
-        min-width: 140px;
-    }
-
-    .progress-container {
-        height: 20px;
-    }
-
-    #coin {
-        width: 50px;
-        height: 50px;
-    }
+  .piggy-image {
+    width: 160px;
+    height: 160px;
+  }
+  .balance-text {
+    font-size: 24px;
+  }
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 24px;
+    font-size: 16px;
+    min-width: 140px;
+  }
+  .progress-container {
+    height: 20px;
+  }
+  #coin {
+    width: 50px;
+    height: 50px;
+  }
 }
 
 @media (max-width: 480px) {
-    .piggy-image {
-        width: 130px;
-        height: 130px;
-    }
-
-    .balance-text {
-        font-size: 20px;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-        width: 100%;
-        max-width: 180px;
-        padding: 8px 16px;
-        font-size: 14px;
-        min-width: 120px;
-    }
-
-    .progress-container {
-        width: 90%;
-        height: 18px;
-    }
-
-    .percent-text {
-        font-size: 12px;
-        right: 8px;
-    }
-
-    #coin {
-        width: 40px;
-        height: 40px;
-    }
-
-    h1 {
-        font-size: 24px !important;
-    }
-
-    .status-text {
-        font-size: 12px;
-    }
-
-    .flex {
-        gap: 8px !important;
-    }
+  .piggy-image {
+    width: 130px;
+    height: 130px;
+  }
+  .balance-text {
+    font-size: 20px;
+  }
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    max-width: 180px;
+    padding: 8px 16px;
+    font-size: 14px;
+    min-width: 120px;
+  }
+  .progress-container {
+    width: 90%;
+    height: 18px;
+  }
+  .percent-text {
+    font-size: 12px;
+    right: 8px;
+  }
+  #coin {
+    width: 40px;
+    height: 40px;
+  }
+  h1 {
+    font-size: 24px !important;
+  }
+  .status-text {
+    font-size: 12px;
+  }
+  .flex {
+    gap: 8px !important;
+  }
 }
 
 @media (max-width: 380px) {
-    .piggy-image {
-        width: 100px;
-        height: 100px;
-    }
-
-    .balance-text {
-        font-size: 18px;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-        padding: 6px 12px;
-        font-size: 12px;
-        min-width: 100px;
-    }
-
-    #coin {
-        width: 32px;
-        height: 32px;
-    }
+  .piggy-image {
+    width: 100px;
+    height: 100px;
+  }
+  .balance-text {
+    font-size: 18px;
+  }
+  .btn-primary,
+  .btn-secondary {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-width: 100px;
+  }
+  #coin {
+    width: 32px;
+    height: 32px;
+  }
 }
