@@ -1,11 +1,12 @@
 // ============================================================
-//  TON PIGGYBANK — ЛОГИКА КОПИЛКИ
+//  TON PIGGYBANK — ЛОГИКА С БЭКЕНДОМ
 // ============================================================
 
 // ---------- СОСТОЯНИЕ ----------
 let balance = 0.0;
 let goal = 5.0;
 let statusTimeout = null;
+let telegramId = null;
 
 // ---------- DOM-ЭЛЕМЕНТЫ ----------
 const piggy = document.getElementById('piggy');
@@ -16,20 +17,93 @@ const depositBtn = document.getElementById('depositBtn');
 const withdrawBtn = document.getElementById('withdrawBtn');
 const coin = document.getElementById('coin');
 
-// ---------- РАБОТА С ЦЕЛЬЮ ----------
-function loadGoal() {
-    const saved = localStorage.getItem('piggybank_goal');
-    if (saved) {
-        goal = parseFloat(saved);
-    } else {
-        showGoalPrompt();
+// ---------- ПОЛУЧЕНИЕ TELEGRAM ID ----------
+function getTelegramId() {
+    try {
+        if (window.Telegram && window.Telegram.WebApp) {
+            const user = window.Telegram.WebApp.initDataUnsafe?.user;
+            if (user && user.id) {
+                return user.id.toString();
+            }
+        }
+    } catch (e) {
+        console.warn('Telegram WebApp не доступен');
+    }
+    // Если не в Telegram — используем тестовый ID
+    return 'test_user_123';
+}
+
+// ---------- ЗАГРУЗКА ДАННЫХ С СЕРВЕРА ----------
+async function loadFromServer() {
+    telegramId = getTelegramId();
+    try {
+        const response = await fetch(`http://localhost:3000/api/balance/${telegramId}`);
+        const data = await response.json();
+        balance = data.balance || 0;
+        goal = data.goal || 5.0;
+        updateUI();
+    } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        // Если сервер не отвечает — работаем локально
+        loadGoal();
     }
 }
 
-function saveGoal(newGoal) {
-    goal = newGoal;
-    localStorage.setItem('piggybank_goal', goal.toString());
-    updateUI();
+// ---------- СОХРАНЕНИЕ ДАННЫХ НА СЕРВЕР ----------
+async function saveToServer() {
+    try {
+        await fetch('http://localhost:3000/api/deposit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telegramId: telegramId,
+                balance: balance,
+                goal: goal
+            })
+        });
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+    }
+}
+
+// ---------- ОБНОВЛЕНИЕ UI ----------
+function updateUI() {
+    balanceDisplay.textContent = balance.toFixed(2);
+    const percent = Math.min((balance / goal) * 100, 100);
+    progressFill.style.width = percent + '%';
+
+    let percentLabel = document.querySelector('.percent-text');
+    if (!percentLabel) {
+        percentLabel = document.createElement('span');
+        percentLabel.className = 'percent-text';
+        document.querySelector('.progress-container').appendChild(percentLabel);
+    }
+    percentLabel.textContent = Math.round(percent) + '%';
+
+    if (!statusMessage.dataset.temporary) {
+        if (balance >= goal) {
+            statusMessage.textContent = '🎉 Цель достигнута! Ты красавчик!';
+        } else if (balance > 0) {
+            statusMessage.textContent = '🐽 Отлично! Продолжай копить!';
+        } else {
+            statusMessage.textContent = `🎯 Цель: ${goal} TON. Копи дальше!`;
+        }
+    }
+}
+
+// ---------- ВРЕМЕННОЕ СООБЩЕНИЕ ----------
+function setTemporaryMessage(text) {
+    if (statusTimeout) {
+        clearTimeout(statusTimeout);
+        statusTimeout = null;
+    }
+    statusMessage.textContent = text;
+    statusMessage.dataset.temporary = 'true';
+    statusTimeout = setTimeout(() => {
+        statusMessage.dataset.temporary = '';
+        updateUI();
+        statusTimeout = null;
+    }, 3000);
 }
 
 // ---------- ПОПАП ДЛЯ ВВОДА ЦЕЛИ ----------
@@ -95,50 +169,13 @@ function showGoalPrompt() {
             alert('Введи число больше 0');
             return;
         }
-        saveGoal(value);
+        goal = value;
+        localStorage.setItem('piggybank_goal', goal.toString());
         overlay.remove();
+        updateUI();
+        saveToServer();
         setTemporaryMessage(`🎯 Цель: ${value} TON`);
     });
-}
-
-// ---------- ОБНОВЛЕНИЕ UI ----------
-function updateUI() {
-    balanceDisplay.textContent = balance.toFixed(2);
-    const percent = Math.min((balance / goal) * 100, 100);
-    progressFill.style.width = percent + '%';
-
-    let percentLabel = document.querySelector('.percent-text');
-    if (!percentLabel) {
-        percentLabel = document.createElement('span');
-        percentLabel.className = 'percent-text';
-        document.querySelector('.progress-container').appendChild(percentLabel);
-    }
-    percentLabel.textContent = Math.round(percent) + '%';
-
-    if (!statusMessage.dataset.temporary) {
-        if (balance >= goal) {
-            statusMessage.textContent = '🎉 Цель достигнута! Ты красавчик!';
-        } else if (balance > 0) {
-            statusMessage.textContent = '🐽 Отлично! Продолжай копить!';
-        } else {
-            statusMessage.textContent = `🎯 Цель: ${goal} TON. Копи дальше!`;
-        }
-    }
-}
-
-// ---------- ВРЕМЕННОЕ СООБЩЕНИЕ ----------
-function setTemporaryMessage(text) {
-    if (statusTimeout) {
-        clearTimeout(statusTimeout);
-        statusTimeout = null;
-    }
-    statusMessage.textContent = text;
-    statusMessage.dataset.temporary = 'true';
-    statusTimeout = setTimeout(() => {
-        statusMessage.dataset.temporary = '';
-        updateUI();
-        statusTimeout = null;
-    }, 3000);
 }
 
 // ---------- АНИМАЦИИ ----------
@@ -239,6 +276,7 @@ depositBtn.addEventListener('click', () => {
     setTimeout(() => {
         balance += amount;
         updateUI();
+        saveToServer();
         setTemporaryMessage(`+${amount.toFixed(2)} TON! 🎉`);
     }, 1200);
 });
@@ -256,6 +294,5 @@ withdrawBtn.addEventListener('click', () => {
 });
 
 // ---------- СТАРТ ----------
-loadGoal();
-updateUI();
-console.log('🐷 TON PiggyBank загружен. Цель:', goal);
+loadFromServer();
+console.log('🐷 TON PiggyBank загружен');
