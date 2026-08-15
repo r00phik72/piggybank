@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TON PiggyBank</title>
+
+    <link rel="stylesheet" href="style.css" />
+
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.0/dist/tonconnect-ui.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div id="ton-connect-button"></div>
+
+    <div class="flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 class="mb-1 text-3xl font-bold text-pink-600">
+            TON 🐷 PiggyBank
+        </h1>
+
+        <p class="mb-4 text-sm text-gray-500">
+            Копи с удовольствием!
+        </p>
+
+        <img id="piggy"
+             class="piggy-image"
+             src="piggy.png"
+             alt="Свинья-копилка" />
+
+        <div id="coin"></div>
+
+        <div class="mt-4 text-center">
+            <span class="balance-text" id="balanceDisplay">0.00</span>
+            <span class="font-semibold text-gray-600"> TON</span>
+            <div class="status-text" id="statusMessage">
+                Копи дальше! 💪
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progressFill">
+                0%
+            </div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-4 mt-6">
+            <button class="btn-primary" id="depositBtn">
+                💰 Пополнить
+            </button>
+            <button class="btn-secondary" id="withdrawBtn">
+                🏦 Запросить вывод
+            </button>
+        </div>
+
+        <p class="mt-8 text-xs text-gray-400">
+            Нажми на свинью — она хрюкнет 🐽
+        </p>
+    </div>
+
+    <script src="app.js">
+    </script>
+</body>
+</html>
