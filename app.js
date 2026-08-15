@@ -1,10 +1,10 @@
 // ============================================================
-//  TON PIGGYBANK — ЛОГИКА С ЛИЧНОЙ ЦЕЛЬЮ
+//  TON PIGGYBANK — ЛОГИКА КОПИЛКИ
 // ============================================================
 
 // ---------- СОСТОЯНИЕ ----------
 let balance = 0.0;
-let goal = 5.0; // Значение по умолчанию, пока не установит пользователь
+let goal = 5.0;
 let statusTimeout = null;
 
 // ---------- DOM-ЭЛЕМЕНТЫ ----------
@@ -16,13 +16,13 @@ const depositBtn = document.getElementById('depositBtn');
 const withdrawBtn = document.getElementById('withdrawBtn');
 const coin = document.getElementById('coin');
 
-// ---------- РАБОТА С ЦЕЛЬЮ (localStorage) ----------
+// ---------- РАБОТА С ЦЕЛЬЮ ----------
 function loadGoal() {
     const saved = localStorage.getItem('piggybank_goal');
     if (saved) {
         goal = parseFloat(saved);
     } else {
-        showGoalPrompt(); // Если цели нет — показываем попап
+        showGoalPrompt();
     }
 }
 
@@ -34,11 +34,9 @@ function saveGoal(newGoal) {
 
 // ---------- ПОПАП ДЛЯ ВВОДА ЦЕЛИ ----------
 function showGoalPrompt() {
-    // Убираем старый попап, если был
     const oldPopup = document.getElementById('goalPopup');
     if (oldPopup) oldPopup.remove();
 
-    // Создаём затемнение
     const overlay = document.createElement('div');
     overlay.id = 'goalPopup';
     overlay.style.cssText = `
@@ -54,7 +52,6 @@ function showGoalPrompt() {
         z-index: 10000;
     `;
 
-    // Создаём карточку
     const card = document.createElement('div');
     card.style.cssText = `
         background: #fff;
@@ -91,7 +88,6 @@ function showGoalPrompt() {
     overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    // Обработчик сохранения
     document.getElementById('goalSaveBtn').addEventListener('click', () => {
         const input = document.getElementById('goalInput');
         const value = parseFloat(input.value);
@@ -105,13 +101,19 @@ function showGoalPrompt() {
     });
 }
 
-// ---------- ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ----------
+// ---------- ОБНОВЛЕНИЕ UI ----------
 function updateUI() {
     balanceDisplay.textContent = balance.toFixed(2);
-
     const percent = Math.min((balance / goal) * 100, 100);
     progressFill.style.width = percent + '%';
-    progressFill.textContent = Math.round(percent) + '%';
+
+    let percentLabel = document.querySelector('.percent-text');
+    if (!percentLabel) {
+        percentLabel = document.createElement('span');
+        percentLabel.className = 'percent-text';
+        document.querySelector('.progress-container').appendChild(percentLabel);
+    }
+    percentLabel.textContent = Math.round(percent) + '%';
 
     if (!statusMessage.dataset.temporary) {
         if (balance >= goal) {
@@ -223,10 +225,6 @@ function flyCoinToPiggy() {
     });
 }
 
-// ---------- TON CONNECT (ЗАГЛУШКА) ----------
-// Пока просто выводим в консоль
-console.log('🐷 TON Connect будет добавлен позже');
-
 // ---------- СОБЫТИЯ ----------
 piggy.addEventListener('click', () => {
     piggySqueal();
@@ -260,4 +258,4 @@ withdrawBtn.addEventListener('click', () => {
 // ---------- СТАРТ ----------
 loadGoal();
 updateUI();
-console.log('🐷 TON PiggyBank загружен! Цель:', goal);
+console.log('🐷 TON PiggyBank загружен. Цель:', goal);

@@ -14,14 +14,6 @@ body {
     padding: 0;
 }
 
-/* ---------- Контейнер для кнопки TON Connect ---------- */
-#ton-connect-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 100;
-}
-
 /* ---------- Свинья ---------- */
 .piggy-image {
     width: 200px;
@@ -35,7 +27,7 @@ body {
     transform: scale(0.95);
 }
 
-/* ---------- Монетка (CSS-3D) ---------- */
+/* ---------- Монетка ---------- */
 #coin {
     position: fixed;
     display: none;
@@ -45,13 +37,10 @@ body {
     pointer-events: none;
     z-index: 9999;
     will-change: transform;
-
     background: radial-gradient(circle at 35% 30%, #ffe97a, #f5b700, #b8860b);
-    box-shadow:
-        0 4px 20px rgba(255, 215, 0, 0.6),
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.6),
         inset 0 -4px 8px rgba(0, 0, 0, 0.3),
         inset 0 4px 8px rgba(255, 255, 200, 0.6);
-
     transform-style: preserve-3d;
 }
 
@@ -65,21 +54,29 @@ body {
     border-radius: 30px;
     overflow: hidden;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .progress-fill {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    width: 0%;
     height: 100%;
-    padding-right: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    color: #7c2d12;
+    width: 0%;
     background: linear-gradient(90deg, #fbbf24, #f59e0b);
     border-radius: 30px;
     transition: width 0.5s ease;
+}
+
+/* Процент — всегда в правой части контейнера */
+.percent-text {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: bold;
+    color: #7c2d12;
+    pointer-events: none;
+    z-index: 2;
+    text-shadow: 0 1px 4px rgba(255, 255, 255, 0.6);
 }
 
 /* ---------- Кнопки ---------- */
@@ -129,10 +126,7 @@ body {
     transition: opacity 0.3s ease;
 }
 
-/* ============================================================
-   АДАПТИВНОСТЬ
-   ============================================================ */
-
+/* ---------- Адаптивность ---------- */
 @media (max-width: 768px) {
     .piggy-image {
         width: 160px;
@@ -152,10 +146,6 @@ body {
 
     .progress-container {
         height: 20px;
-    }
-
-    .progress-fill {
-        font-size: 12px;
     }
 
     #coin {
@@ -188,9 +178,9 @@ body {
         height: 18px;
     }
 
-    .progress-fill {
-        padding-right: 4px;
-        font-size: 11px;
+    .percent-text {
+        font-size: 12px;
+        right: 8px;
     }
 
     #coin {
