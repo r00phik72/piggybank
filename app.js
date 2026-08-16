@@ -23,9 +23,7 @@ function getTelegramId() {
     if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
       return window.Telegram.WebApp.initDataUnsafe.user.id.toString();
     }
-  } catch (_) {
-    // игнорируем ошибку
-  }
+  } catch (_) {}
   console.warn('⚠️ Используется тестовый ID');
   return 'test_user_123';
 }
@@ -40,12 +38,10 @@ async function loadFromServer() {
     goal = data.goal ?? 5.0;
     updateUI();
   } catch (_) {
-    // fallback
     loadGoal();
   }
 }
 
-// ---------- СОХРАНЕНИЕ НА СЕРВЕР ----------
 async function saveToServer() {
   try {
     await fetch('http://localhost:3000/api/deposit', {
@@ -53,9 +49,7 @@ async function saveToServer() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ telegramId, balance, goal })
     });
-  } catch (_) {
-    // игнорируем
-  }
+  } catch (_) {}
 }
 
 // ---------- UI ----------
@@ -212,23 +206,39 @@ function createSparkles(x, y) {
 }
 
 function flyCoinToPiggy() {
-  const startX = Math.random() * window.innerWidth;
-  const startY = -80;
+  // Убиваем все старые анимации
+  gsap.killTweensOf(coin);
+
+  // Сбрасываем монетку в начальное состояние
   coin.style.display = 'block';
-  coin.style.left = startX + 'px';
-  coin.style.top = startY + 'px';
-  coin.style.transform = 'scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)';
   coin.style.opacity = '1';
+  coin.style.left = (window.innerWidth / 2 - 30) + 'px';
+  coin.style.top = '-80px';
+  coin.style.width = '60px';
+  coin.style.height = '60px';
+  coin.style.transform = 'none';
+  coin.style.position = 'fixed';
+
+  // Принудительно сбрасываем трансформации через GSAP
+  gsap.set(coin, {
+    x: 0,
+    y: 0,
+    rotationX: 0,
+    rotationY: 0,
+    rotationZ: 0,
+    scale: 1
+  });
 
   const rect = piggy.getBoundingClientRect();
   const targetX = rect.left + rect.width / 2 - 30;
   const targetY = rect.top - 10;
 
+  // Анимируем через x, y
   gsap.to(coin, {
-    left: targetX,
-    top: targetY,
-    duration: 1.0,
-    ease: 'power2.in',
+    x: targetX - parseInt(coin.style.left),
+    y: targetY + 80,
+    duration: 0.9,
+    ease: 'none',
     opacity: 0.9,
     scale: 0.3,
     rotationX: 720,
@@ -241,7 +251,10 @@ function flyCoinToPiggy() {
         scale: 0,
         opacity: 0,
         duration: 0.2,
-        onComplete: () => { coin.style.display = 'none'; }
+        onComplete: () => {
+          coin.style.display = 'none';
+          gsap.set(coin, { x: 0, y: 0, rotationX: 0, rotationY: 0, rotationZ: 0, scale: 1 });
+        }
       });
     }
   });
