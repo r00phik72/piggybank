@@ -90,9 +90,14 @@ app.post('/api/deposit', (req, res) => {
   });
 });
 
+// ---------- ЭНДПОИНТ ДЛЯ ОБНОВЛЕНИЯ ЦЕЛИ (С ЛОГАМИ) ----------
 app.post('/api/update-goal', (req, res) => {
+  console.log('📥 Получен запрос на обновление цели:', req.body);
+
   const { telegramId, goal } = req.body;
+
   if (!telegramId || !goal || goal <= 0) {
+    console.log('❌ Некорректные данные:', { telegramId, goal });
     return res.status(400).json({ error: 'Некорректные данные' });
   }
 
@@ -100,7 +105,11 @@ app.post('/api/update-goal', (req, res) => {
     'UPDATE users SET goal = ?, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?',
     [goal, telegramId],
     (err) => {
-      if (err) return res.status(500).json({ error: 'Ошибка обновления цели' });
+      if (err) {
+        console.error('❌ Ошибка обновления цели:', err);
+        return res.status(500).json({ error: 'Ошибка обновления цели' });
+      }
+      console.log('✅ Цель обновлена для пользователя:', telegramId, 'Новая цель:', goal);
       res.json({
         telegramId,
         goal,

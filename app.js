@@ -37,19 +37,36 @@ async function loadFromServer() {
     balance = data.balance ?? 0;
     goal = data.goal ?? 5.0;
     updateUI();
+    showGoalPrompt();
   } catch (_) {
     loadGoal();
   }
 }
 
-async function saveToServer() {
+// ---------- СОХРАНЕНИЕ НА СЕРВЕР (ИСПРАВЛЕНО) ----------
+function saveToServer(amount) {
+  if (!telegramId) return;
+  fetch('http://localhost:3000/api/deposit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ telegramId, balance, goal, amount })
+  }).catch(() => {});
+}
+
+// ---------- СОХРАНЕНИЕ ЦЕЛИ ----------
+async function saveGoalToServer() {
+  if (!telegramId) return;
   try {
-    await fetch('http://localhost:3000/api/deposit', {
+    const res = await fetch('http://localhost:3000/api/update-goal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegramId, balance, goal })
+      body: JSON.stringify({ telegramId, goal })
     });
-  } catch (_) {}
+    const data = await res.json();
+    console.log('✅ Ответ сервера:', data);
+  } catch (error) {
+    console.error('❌ Ошибка сохранения цели:', error);
+  }
 }
 
 // ---------- UI ----------
@@ -135,7 +152,7 @@ function showGoalPrompt() {
   overlay.appendChild(card);
   document.body.appendChild(overlay);
 
-  document.getElementById('goalSaveBtn').addEventListener('click', () => {
+  document.getElementById('goalSaveBtn').addEventListener('click', async () => {
     const val = parseFloat(document.getElementById('goalInput').value);
     if (isNaN(val) || val <= 0) {
       alert('Введи число больше 0');
@@ -145,7 +162,7 @@ function showGoalPrompt() {
     localStorage.setItem('piggybank_goal', goal.toString());
     overlay.remove();
     updateUI();
-    saveToServer();
+    await saveGoalToServer();
     setTemporaryMessage(`🎯 Цель: ${val} TON`);
   });
 }
@@ -206,10 +223,8 @@ function createSparkles(x, y) {
 }
 
 function flyCoinToPiggy() {
-  // Убиваем все старые анимации
   gsap.killTweensOf(coin);
 
-  // Сбрасываем монетку в начальное состояние
   coin.style.display = 'block';
   coin.style.opacity = '1';
   coin.style.left = (window.innerWidth / 2 - 30) + 'px';
@@ -219,7 +234,6 @@ function flyCoinToPiggy() {
   coin.style.transform = 'none';
   coin.style.position = 'fixed';
 
-  // Принудительно сбрасываем трансформации через GSAP
   gsap.set(coin, {
     x: 0,
     y: 0,
@@ -233,7 +247,6 @@ function flyCoinToPiggy() {
   const targetX = rect.left + rect.width / 2 - 30;
   const targetY = rect.top - 10;
 
-  // Анимируем через x, y
   gsap.to(coin, {
     x: targetX - parseInt(coin.style.left),
     y: targetY + 80,
@@ -273,7 +286,7 @@ depositBtn.addEventListener('click', () => {
   setTimeout(() => {
     balance += amount;
     updateUI();
-    saveToServer();
+    saveToServer(amount); // <-- передаём сумму
     setTemporaryMessage(`+${amount.toFixed(2)} TON! 🎉`);
   }, 1200);
 });
