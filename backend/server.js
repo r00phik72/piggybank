@@ -8,7 +8,7 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // ---------- БАЗА ДАННЫХ ----------
 const db = new sqlite3.Database('./piggybank.db');
@@ -121,7 +121,6 @@ app.post('/api/update-goal', (req, res) => {
 });
 
 // ---------- ЗАПУСК ----------
-app.listen(PORT, () => {
-  console.log(`🐷 Сервер запущен: http://localhost:${PORT}`);
-  console.log(`📁 Статика: ${path.join(__dirname, '..')}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🐷 Сервер запущен на порту ${PORT}`);
 });
