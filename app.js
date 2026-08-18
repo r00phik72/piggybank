@@ -7,6 +7,7 @@ let balance = 0.0;
 let goal = 5.0;
 let statusTimeout = null;
 let telegramId = null;
+let goalReached = false;
 
 // ---------- DOM ----------
 const piggy = document.getElementById('piggy');
@@ -38,6 +39,11 @@ async function loadFromServer() {
 
     balance = data.balance ?? 0;
     goal = data.goal ?? 5.0;
+
+    if (balance >= goal) {
+      goalReached = true;
+      updateButtonStates();
+    }
 
     const savedGoal = localStorage.getItem('piggybank_goal');
     if (savedGoal) {
@@ -80,6 +86,66 @@ async function saveGoalToServer() {
   }
 }
 
+// ---------- ОБНОВЛЕНИЕ КНОПОК ----------
+function updateButtonStates() {
+  // Название кнопки всегда "🏦 Вывести", меняется только цвет
+  withdrawBtn.textContent = '🏦 Вывести';
+  if (goalReached) {
+    withdrawBtn.classList.remove('btn-secondary');
+    withdrawBtn.classList.add('btn-withdraw-success');
+    changeGoalBtn.classList.remove('btn-secondary');
+    changeGoalBtn.classList.add('btn-goal-success');
+  } else {
+    withdrawBtn.classList.remove('btn-withdraw-success');
+    withdrawBtn.classList.add('btn-secondary');
+    changeGoalBtn.classList.remove('btn-goal-success');
+    changeGoalBtn.classList.add('btn-secondary');
+  }
+}
+
+// ---------- ОБРАБОТЧИК КНОПКИ "ВЫВЕСТИ" ----------
+function handleWithdraw() {
+  if (goalReached) {
+    // Если цель достигнута — сбрасываем баланс
+    balance = 0;
+    goalReached = false;
+    updateButtonStates();
+    saveToServer(0);
+    updateUI();
+    setTemporaryMessage('💸 Баланс сброшен до 0. Начни копить заново!');
+  } else {
+    // Если цель не достигнута — показываем остаток
+    if (balance < 0.5) {
+      setTemporaryMessage('😢 Слишком мало! Накопи хотя бы 0.5 TON');
+      return;
+    }
+    setTemporaryMessage(`⏳ Осталось ${(goal - balance).toFixed(1)} TON до цели`);
+  }
+}
+
+// ---------- КОНФЕТТИ ----------
+function launchConfetti() {
+  confetti({
+    particleCount: 120,
+    spread: 70,
+    origin: { y: 0.6 }
+  });
+  setTimeout(() => {
+    confetti({
+      particleCount: 80,
+      spread: 50,
+      origin: { y: 0.6 }
+    });
+  }, 300);
+  setTimeout(() => {
+    confetti({
+      particleCount: 60,
+      spread: 40,
+      origin: { y: 0.6 }
+    });
+  }, 600);
+}
+
 // ---------- UI ----------
 function updateUI() {
   balanceDisplay.textContent = balance.toFixed(2);
@@ -94,9 +160,18 @@ function updateUI() {
   }
   label.textContent = Math.round(percent) + '%';
 
+  if (balance >= goal && !goalReached) {
+    goalReached = true;
+    updateButtonStates();
+    launchConfetti();
+    statusMessage.textContent = '🎉 Ура! Вывод доступен! (пока симуляция)';
+    statusMessage.dataset.temporary = 'true';
+    return;
+  }
+
   if (statusMessage.dataset.temporary) return;
   if (balance >= goal) {
-    statusMessage.textContent = '🎉 Цель достигнута! Ты красавчик!';
+    statusMessage.textContent = '🎉 Ура! Вывод доступен! (пока симуляция)';
   } else if (balance > 0) {
     statusMessage.textContent = '🐽 Отлично! Продолжай копить!';
   } else {
@@ -170,6 +245,7 @@ function showGoalPrompt() {
       return;
     }
     goal = val;
+    goalReached = false;
     localStorage.setItem('piggybank_goal', goal.toString());
     overlay.remove();
     updateUI();
@@ -302,17 +378,8 @@ depositBtn.addEventListener('click', () => {
   }, 1200);
 });
 
-withdrawBtn.addEventListener('click', () => {
-  if (balance < 0.5) {
-    setTemporaryMessage('😢 Слишком мало! Накопи хотя бы 0.5 TON');
-    return;
-  }
-  if (balance >= goal) {
-    setTemporaryMessage('🎉 Ура! Вывод доступен! (пока симуляция)');
-  } else {
-    setTemporaryMessage(`⏳ Осталось ${(goal - balance).toFixed(1)} TON до цели`);
-  }
-});
+// ---------- ЕДИНЫЙ ОБРАБОТЧИК ДЛЯ КНОПКИ ВЫВОДА ----------
+withdrawBtn.addEventListener('click', handleWithdraw);
 
 // ---------- БЫСТРЫЕ ДЕПОЗИТЫ ----------
 document.querySelectorAll('.quick-deposit').forEach(btn => {
@@ -327,6 +394,7 @@ document.querySelectorAll('.quick-deposit').forEach(btn => {
   });
 });
 
+// ---------- НОВАЯ ЦЕЛЬ ----------
 changeGoalBtn.addEventListener('click', () => {
   showGoalPrompt();
 });

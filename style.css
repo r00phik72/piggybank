@@ -11,7 +11,32 @@ body {
   justify-content: center;
   min-height: 100vh;
   margin: 0;
-  padding: 0;
+  padding: 16px;
+}
+
+/* ---------- Фикс для стабильной ширины ---------- */
+.flex-col {
+  width: 100%;
+  max-width: 420px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-withdraw-success,
+.btn-goal-success {
+  width: 180px;
+  max-width: 180px;
+  min-width: 180px;
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.progress-container {
+  width: 100%;
+  max-width: 100%;
 }
 
 /* ---------- Свинья ---------- */
@@ -49,8 +74,6 @@ body {
 /* ---------- Прогресс-бар ---------- */
 .progress-container {
   position: relative;
-  width: 80%;
-  max-width: 400px;
   height: 24px;
   margin: 16px auto;
   background: #fbcfe8;
@@ -90,7 +113,6 @@ body {
   border-radius: 40px;
   cursor: pointer;
   transition: 0.2s;
-  min-width: 160px;
 }
 
 .btn-primary {
@@ -110,6 +132,33 @@ body {
 
 .btn-secondary:active {
   transform: scale(0.95);
+}
+
+/* ---------- Состояние кнопок при достижении цели ---------- */
+.btn-withdraw-success {
+  background: #22c55e !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4) !important;
+  padding: 12px 32px !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  border: none !important;
+  border-radius: 40px !important;
+  cursor: pointer !important;
+  transition: 0.2s !important;
+}
+
+.btn-goal-success {
+  background: #ec4899 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4) !important;
+  padding: 12px 32px !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  border: none !important;
+  border-radius: 40px !important;
+  cursor: pointer !important;
+  transition: 0.2s !important;
 }
 
 /* ---------- Быстрые депозиты ---------- */
@@ -138,11 +187,21 @@ body {
   transform: scale(0.95);
 }
 
-/* ---------- Изменить цель ---------- */
-#changeGoalBtn {
-  padding: 8px 20px;
-  font-size: 14px;
-  min-width: auto;
+/* ---------- Кнопки после достижения цели ---------- */
+.goal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.goal-actions .btn-primary,
+.goal-actions .btn-secondary {
+  min-width: 140px;
+  padding: 10px 20px;
+  font-size: 16px;
 }
 
 /* ---------- Текст ---------- */
@@ -170,10 +229,14 @@ body {
     font-size: 24px;
   }
   .btn-primary,
-  .btn-secondary {
-    padding: 10px 24px;
-    font-size: 16px;
-    min-width: 140px;
+  .btn-secondary,
+  .btn-withdraw-success,
+  .btn-goal-success {
+    padding: 10px 24px !important;
+    font-size: 16px !important;
+    width: 160px !important;
+    max-width: 160px !important;
+    min-width: 160px !important;
   }
   .progress-container {
     height: 20px;
@@ -193,19 +256,20 @@ body {
     font-size: 20px;
   }
   .btn-primary,
-  .btn-secondary {
-    width: 100%;
-    max-width: 180px;
-    padding: 8px 16px;
-    font-size: 14px;
-    min-width: 120px;
+  .btn-secondary,
+  .btn-withdraw-success,
+  .btn-goal-success {
+    width: 140px !important;
+    max-width: 140px !important;
+    min-width: 140px !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
   }
   .quick-deposit {
     padding: 6px 12px;
     font-size: 12px;
   }
   .progress-container {
-    width: 90%;
     height: 18px;
   }
   .percent-text {
@@ -236,10 +300,14 @@ body {
     font-size: 18px;
   }
   .btn-primary,
-  .btn-secondary {
-    padding: 6px 12px;
-    font-size: 12px;
-    min-width: 100px;
+  .btn-secondary,
+  .btn-withdraw-success,
+  .btn-goal-success {
+    width: 120px !important;
+    max-width: 120px !important;
+    min-width: 120px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
   }
   .quick-deposit {
     padding: 4px 10px;
