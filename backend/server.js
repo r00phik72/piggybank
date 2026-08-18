@@ -1,49 +1,47 @@
 // ============================================================
-//  TON PIGGYBANK — БЭКЕНД (NODE.JS + EXPRESS + SQLite)
+//  TON PIGGYBANK — БЭКЕНД (SUPABASE)
 // ============================================================
 
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ---------- БАЗА ДАННЫХ ----------
-const db = new sqlite3.Database('./piggybank.db');
-
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    telegram_id TEXT PRIMARY KEY,
-    balance REAL DEFAULT 0,
-    goal REAL DEFAULT 5.0,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+// ---------- ПОДКЛЮЧЕНИЕ К SUPABASE ----------
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ---------- МИДЛВАРЫ ----------
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..')));
 
-// ---------- ВСПОМОГАТЕЛЬНО ----------
-function getUserData(telegramId, callback) {
-  db.get('SELECT * FROM users WHERE telegram_id = ?', [telegramId], (err, row) => {
-    if (err) return callback(err, null);
-    if (row) return callback(null, row);
+// ---------- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ----------
+async function getUserData(telegramId) {
+  // Проверяем, есть ли пользователь
+  let { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .maybeSingle();
 
-    db.run(
-      'INSERT INTO users (telegram_id, balance, goal) VALUES (?, 0, 5.0)',
-      [telegramId],
-      (err) => {
-        if (err) return callback(err, null);
-        db.get('SELECT * FROM users WHERE telegram_id = ?', [telegramId], (err, row) => {
-          callback(err, row);
-        });
-      }
-    );
-  });
+  if (error) throw error;
+
+  // Если пользователя нет — создаём
+  if (!data) {
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert([{ telegram_id: telegramId, balance: 0, goal: 5.0 }])
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+    return newUser;
+  }
+
+  return data;
 }
 
 // ---------- МАРШРУТЫ ----------
@@ -51,76 +49,78 @@ app.get('/api/health', (_, res) => {
   res.json({ status: 'OK', message: '🐷 Сервер работает!' });
 });
 
-app.get('/api/balance/:telegramId', (req, res) => {
-  const { telegramId } = req.params;
-  getUserData(telegramId, (err, user) => {
-    if (err) return res.status(500).json({ error: 'Ошибка БД' });
+app.get('/api/balance/:telegramId', async (req, res) => {
+  try {
+    const { telegramId } = req.params;
+    const user = await getUserData(telegramId);
     res.json({
       telegramId: user.telegram_id,
       balance: user.balance,
       goal: user.goal
     });
-  });
+  } catch (error) {
+    console.error('Ошибка получения баланса:', error);
+    res.status(500).json({ error: 'Ошибка БД' });
+  }
 });
 
-app.post('/api/deposit', (req, res) => {
-  const { telegramId, amount } = req.body;
-  if (!telegramId || !amount || amount <= 0) {
-    return res.status(400).json({ error: 'Некорректные данные' });
-  }
-
-  getUserData(telegramId, (err, user) => {
-    if (err) return res.status(500).json({ error: 'Ошибка БД' });
-
-    const newBalance = user.balance + amount;
-    db.run(
-      'UPDATE users SET balance = ?, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?',
-      [newBalance, telegramId],
-      (err) => {
-        if (err) return res.status(500).json({ error: 'Ошибка обновления' });
-        res.json({
-          telegramId,
-          amount,
-          newBalance,
-          status: 'completed',
-          message: '✅ Пополнение успешно!'
-        });
-      }
-    );
-  });
-});
-
-// ---------- ЭНДПОИНТ ДЛЯ ОБНОВЛЕНИЯ ЦЕЛИ (С ЛОГАМИ) ----------
-app.post('/api/update-goal', (req, res) => {
-  console.log('📥 Получен запрос на обновление цели:', req.body);
-
-  const { telegramId, goal } = req.body;
-
-  if (!telegramId || !goal || goal <= 0) {
-    console.log('❌ Некорректные данные:', { telegramId, goal });
-    return res.status(400).json({ error: 'Некорректные данные' });
-  }
-
-  db.run(
-    'UPDATE users SET goal = ?, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?',
-    [goal, telegramId],
-    (err) => {
-      if (err) {
-        console.error('❌ Ошибка обновления цели:', err);
-        return res.status(500).json({ error: 'Ошибка обновления цели' });
-      }
-      console.log('✅ Цель обновлена для пользователя:', telegramId, 'Новая цель:', goal);
-      res.json({
-        telegramId,
-        goal,
-        status: 'completed',
-        message: '✅ Цель обновлена!'
-      });
+app.post('/api/deposit', async (req, res) => {
+  try {
+    const { telegramId, amount } = req.body;
+    if (!telegramId || !amount || amount <= 0) {
+      return res.status(400).json({ error: 'Некорректные данные' });
     }
-  );
+
+    const user = await getUserData(telegramId);
+    const newBalance = (user.balance || 0) + amount;
+
+    const { error } = await supabase
+      .from('users')
+      .update({ balance: newBalance, updated_at: new Date().toISOString() })
+      .eq('telegram_id', telegramId);
+
+    if (error) throw error;
+
+    res.json({
+      telegramId,
+      amount,
+      newBalance,
+      status: 'completed',
+      message: '✅ Пополнение успешно!'
+    });
+  } catch (error) {
+    console.error('Ошибка пополнения:', error);
+    res.status(500).json({ error: 'Ошибка обновления' });
+  }
+});
+
+app.post('/api/update-goal', async (req, res) => {
+  try {
+    const { telegramId, goal } = req.body;
+    if (!telegramId || !goal || goal <= 0) {
+      return res.status(400).json({ error: 'Некорректные данные' });
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .update({ goal, updated_at: new Date().toISOString() })
+      .eq('telegram_id', telegramId);
+
+    if (error) throw error;
+
+    res.json({
+      telegramId,
+      goal,
+      status: 'completed',
+      message: '✅ Цель обновлена!'
+    });
+  } catch (error) {
+    console.error('Ошибка обновления цели:', error);
+    res.status(500).json({ error: 'Ошибка обновления цели' });
+  }
 });
 
 // ---------- ЗАПУСК ----------
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🐷 Сервер запущен на порту ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🐷 Сервер с Supabase запущен на порту ${PORT}`);
 });
