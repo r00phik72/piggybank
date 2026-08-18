@@ -1,5 +1,5 @@
 // ============================================================
-//  TON PIGGYBANK — ЛОГИКА С БЭКЕНДОМ
+//  app.js
 // ============================================================
 
 // ---------- СОСТОЯНИЕ ----------
@@ -15,6 +15,7 @@ const progressFill = document.getElementById('progressFill');
 const statusMessage = document.getElementById('statusMessage');
 const depositBtn = document.getElementById('depositBtn');
 const withdrawBtn = document.getElementById('withdrawBtn');
+const changeGoalBtn = document.getElementById('changeGoalBtn');
 const coin = document.getElementById('coin');
 
 // ---------- TELEGRAM ID ----------
@@ -34,10 +35,20 @@ async function loadFromServer() {
   try {
     const res = await fetch(`https://piggybank-one-weld.vercel.app/api/balance/${telegramId}`);
     const data = await res.json();
+
     balance = data.balance ?? 0;
     goal = data.goal ?? 5.0;
+
+    const savedGoal = localStorage.getItem('piggybank_goal');
+    if (savedGoal) {
+      goal = parseFloat(savedGoal);
+    } else if (goal > 5.0 || goal !== 5.0) {
+      localStorage.setItem('piggybank_goal', goal.toString());
+    } else {
+      showGoalPrompt();
+    }
+
     updateUI();
-    showGoalPrompt();
   } catch (_) {
     loadGoal();
   }
@@ -139,7 +150,7 @@ function showGoalPrompt() {
     <p style="color:#6b7280; font-size:14px; margin-bottom:20px;">
       Сколько TON ты хочешь накопить?
     </p>
-    <input id="goalInput" type="number" step="0.1" min="0.1" value="5.0"
+    <input id="goalInput" type="number" step="0.1" min="0.1" value="${goal}"
            style="width:100%; padding:12px; font-size:18px; border:2px solid #fbcfe8; border-radius:12px; box-sizing:border-box; margin-bottom:16px;" />
     <button id="goalSaveBtn" style="
       background:#ec4899; color:white; font-weight:bold;
@@ -301,6 +312,23 @@ withdrawBtn.addEventListener('click', () => {
   } else {
     setTemporaryMessage(`⏳ Осталось ${(goal - balance).toFixed(1)} TON до цели`);
   }
+});
+
+// ---------- БЫСТРЫЕ ДЕПОЗИТЫ ----------
+document.querySelectorAll('.quick-deposit').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const amount = parseFloat(this.dataset.amount);
+    if (isNaN(amount) || amount <= 0) return;
+
+    balance += amount;
+    updateUI();
+    saveToServer(amount);
+    setTemporaryMessage(`+${amount.toFixed(2)} TON! 🎉`);
+  });
+});
+
+changeGoalBtn.addEventListener('click', () => {
+  showGoalPrompt();
 });
 
 // ---------- СТАРТ ----------

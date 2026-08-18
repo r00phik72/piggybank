@@ -1,5 +1,5 @@
 /* ============================================================
-   TON PIGGYBANK — СТИЛИ
+   style.css
    ============================================================ */
 
 /* ---------- Общие ---------- */
@@ -80,7 +80,7 @@ body {
   text-shadow: 0 1px 4px rgba(255, 255, 255, 0.6);
 }
 
-/* ---------- Кнопки ---------- */
+/* ---------- Основные кнопки ---------- */
 .btn-primary,
 .btn-secondary {
   padding: 12px 32px;
@@ -110,6 +110,39 @@ body {
 
 .btn-secondary:active {
   transform: scale(0.95);
+}
+
+/* ---------- Быстрые депозиты ---------- */
+.quick-deposit {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.quick-deposit:nth-child(2) {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.quick-deposit:nth-child(3) {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.quick-deposit:active {
+  transform: scale(0.95);
+}
+
+/* ---------- Изменить цель ---------- */
+#changeGoalBtn {
+  padding: 8px 20px;
+  font-size: 14px;
+  min-width: auto;
 }
 
 /* ---------- Текст ---------- */
@@ -167,6 +200,10 @@ body {
     font-size: 14px;
     min-width: 120px;
   }
+  .quick-deposit {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
   .progress-container {
     width: 90%;
     height: 18px;
@@ -203,6 +240,10 @@ body {
     padding: 6px 12px;
     font-size: 12px;
     min-width: 100px;
+  }
+  .quick-deposit {
+    padding: 4px 10px;
+    font-size: 11px;
   }
   #coin {
     width: 32px;
