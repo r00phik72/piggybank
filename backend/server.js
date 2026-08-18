@@ -7,7 +7,6 @@ const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // ---------- ПОДКЛЮЧЕНИЕ К SUPABASE ----------
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,12 +14,15 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ---------- МИДЛВАРЫ ----------
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // ---------- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ----------
 async function getUserData(telegramId) {
-  // Проверяем, есть ли пользователь
   let { data, error } = await supabase
     .from('users')
     .select('*')
@@ -29,7 +31,6 @@ async function getUserData(telegramId) {
 
   if (error) throw error;
 
-  // Если пользователя нет — создаём
   if (!data) {
     const { data: newUser, error: insertError } = await supabase
       .from('users')
@@ -120,7 +121,5 @@ app.post('/api/update-goal', async (req, res) => {
   }
 });
 
-// ---------- ЗАПУСК ----------
-app.listen(PORT, () => {
-  console.log(`🐷 Сервер с Supabase запущен на порту ${PORT}`);
-});
+// ---------- ЭКСПОРТ ДЛЯ VERCEL ----------
+module.exports = app;
