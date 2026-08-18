@@ -32,7 +32,7 @@ function getTelegramId() {
 async function loadFromServer() {
   telegramId = getTelegramId();
   try {
-    const res = await fetch(`http://localhost:3000/api/balance/${telegramId}`);
+    const res = await fetch(`https://piggybank-one-weld.vercel.app/api/balance/${telegramId}`);
     const data = await res.json();
     balance = data.balance ?? 0;
     goal = data.goal ?? 5.0;
@@ -43,10 +43,10 @@ async function loadFromServer() {
   }
 }
 
-// ---------- СОХРАНЕНИЕ НА СЕРВЕР (ИСПРАВЛЕНО) ----------
+// ---------- СОХРАНЕНИЕ НА СЕРВЕР ----------
 function saveToServer(amount) {
   if (!telegramId) return;
-  fetch('http://localhost:3000/api/deposit', {
+  fetch('https://piggybank-one-weld.vercel.app/api/deposit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ telegramId, balance, goal, amount })
@@ -57,7 +57,7 @@ function saveToServer(amount) {
 async function saveGoalToServer() {
   if (!telegramId) return;
   try {
-    const res = await fetch('http://localhost:3000/api/update-goal', {
+    const res = await fetch('https://piggybank-one-weld.vercel.app/api/update-goal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ telegramId, goal })
@@ -286,7 +286,7 @@ depositBtn.addEventListener('click', () => {
   setTimeout(() => {
     balance += amount;
     updateUI();
-    saveToServer(amount); // <-- передаём сумму
+    saveToServer(amount);
     setTemporaryMessage(`+${amount.toFixed(2)} TON! 🎉`);
   }, 1200);
 });
