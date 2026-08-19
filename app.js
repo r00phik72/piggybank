@@ -63,21 +63,23 @@ async function loadFromServer() {
 // ---------- СОХРАНЕНИЕ НА СЕРВЕР ----------
 function saveToServer(amount) {
   if (!telegramId) return;
+  const initData = window.Telegram?.WebApp?.initData || '';
   fetch('https://piggybank-one-weld.vercel.app/api/deposit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ telegramId, balance, goal, amount })
+    body: JSON.stringify({ telegramId, balance, goal, amount, initData })
   }).catch(() => {});
 }
 
 // ---------- СОХРАНЕНИЕ ЦЕЛИ ----------
 async function saveGoalToServer() {
   if (!telegramId) return;
+  const initData = window.Telegram?.WebApp?.initData || '';
   try {
     const res = await fetch('https://piggybank-one-weld.vercel.app/api/update-goal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegramId, goal })
+      body: JSON.stringify({ telegramId, goal, initData })
     });
     const data = await res.json();
     console.log('✅ Ответ сервера:', data);
