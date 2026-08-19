@@ -5,6 +5,9 @@
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
+const crypto = require('crypto-js');
+
+require('dotenv').config();
 
 const app = express();
 
@@ -12,6 +15,26 @@ const app = express();
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// ---------- ПРОВЕРКА TELEGRAM INIT DATA ----------
+function verifyTelegramInitData(initData) {
+  if (!initData) return false;
+  
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const params = new URLSearchParams(initData);
+  const hash = params.get('hash');
+  params.delete('hash');
+
+  const sortedKeys = Array.from(params.keys()).sort();
+  const dataCheckString = sortedKeys
+    .map(key => `${key}=${params.get(key)}`)
+    .join('\n');
+
+  const secretKey = crypto.HmacSHA256(token, 'WebAppData');
+  const calculatedHash = crypto.HmacSHA256(dataCheckString, secretKey).toString();
+
+  return calculatedHash === hash;
+}
 
 // ---------- МИДЛВАРЫ ----------
 app.use(cors({
@@ -67,7 +90,12 @@ app.get('/api/balance/:telegramId', async (req, res) => {
 
 app.post('/api/deposit', async (req, res) => {
   try {
-    const { telegramId, amount } = req.body;
+    const { telegramId, amount, initData } = req.body;
+
+    if (!verifyTelegramInitData(initData)) {
+      return res.status(401).json({ error: 'Недействительная подпись Telegram' });
+    }
+
     if (!telegramId || !amount || amount <= 0) {
       return res.status(400).json({ error: 'Некорректные данные' });
     }
@@ -97,7 +125,12 @@ app.post('/api/deposit', async (req, res) => {
 
 app.post('/api/update-goal', async (req, res) => {
   try {
-    const { telegramId, goal } = req.body;
+    const { telegramId, goal, initData } = req.body;
+
+    if (!verifyTelegramInitData(initData)) {
+      return res.status(401).json({ error: 'Недействительная подпись Telegram' });
+    }
+
     if (!telegramId || !goal || goal <= 0) {
       return res.status(400).json({ error: 'Некорректные данные' });
     }
