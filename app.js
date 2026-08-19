@@ -40,10 +40,18 @@ async function loadFromServer() {
     balance = data.balance ?? 0;
     goal = data.goal ?? 5.0;
 
-    if (balance >= goal) {
+    // Восстанавливаем состояние достижения цели из localStorage
+    const savedGoalReached = localStorage.getItem('piggybank_goal_reached');
+    if (savedGoalReached === 'true') {
       goalReached = true;
-      updateButtonStates();
+    } else if (balance >= goal) {
+      goalReached = true;
+    } else {
+      goalReached = false;
     }
+
+    // Сохраняем состояние в localStorage
+    localStorage.setItem('piggybank_goal_reached', goalReached ? 'true' : 'false');
 
     const savedGoal = localStorage.getItem('piggybank_goal');
     if (savedGoal) {
@@ -54,6 +62,7 @@ async function loadFromServer() {
       showGoalPrompt();
     }
 
+    updateButtonStates();
     updateUI();
   } catch (_) {
     loadGoal();
@@ -108,15 +117,14 @@ function updateButtonStates() {
 // ---------- ОБРАБОТЧИК КНОПКИ "ВЫВЕСТИ" ----------
 function handleWithdraw() {
   if (goalReached) {
-    // Если цель достигнута — сбрасываем баланс
     balance = 0;
     goalReached = false;
+    localStorage.setItem('piggybank_goal_reached', 'false');
     updateButtonStates();
     saveToServer(0);
     updateUI();
     setTemporaryMessage('💸 Баланс сброшен до 0. Начни копить заново!');
   } else {
-    // Если цель не достигнута — показываем остаток
     if (balance < 0.5) {
       setTemporaryMessage('😢 Слишком мало! Накопи хотя бы 0.5 TON');
       return;
@@ -164,6 +172,7 @@ function updateUI() {
 
   if (balance >= goal && !goalReached) {
     goalReached = true;
+    localStorage.setItem('piggybank_goal_reached', 'true');
     updateButtonStates();
     launchConfetti();
     statusMessage.textContent = '🎉 Ура! Вывод доступен! (пока симуляция)';
@@ -249,6 +258,7 @@ function showGoalPrompt() {
     goal = val;
     goalReached = false;
     localStorage.setItem('piggybank_goal', goal.toString());
+    localStorage.setItem('piggybank_goal_reached', 'false');
     overlay.remove();
     updateUI();
     await saveGoalToServer();
