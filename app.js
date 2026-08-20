@@ -39,45 +39,53 @@ async function loadFromServer() {
 
     balance = data.balance ?? 0;
     goal = data.goal ?? 5.0;
+    goalReached = data.goal_reached ?? false;
 
-    // Восстанавливаем состояние достижения цели из localStorage
-    const savedGoalReached = localStorage.getItem('piggybank_goal_reached');
-    if (savedGoalReached === 'true') {
-      goalReached = true;
-    } else if (balance >= goal) {
-      goalReached = true;
-    } else {
-      goalReached = false;
+    // Сохраняем цель в localStorage для совместимости
+    if (goal > 5.0) {
+      localStorage.setItem('piggybank_goal', goal.toString());
     }
 
-    // Сохраняем состояние в localStorage
-    localStorage.setItem('piggybank_goal_reached', goalReached ? 'true' : 'false');
-
-    const savedGoal = localStorage.getItem('piggybank_goal');
-    if (savedGoal) {
-      goal = parseFloat(savedGoal);
-    } else if (goal > 5.0 || goal !== 5.0) {
-      localStorage.setItem('piggybank_goal', goal.toString());
-    } else {
-      showGoalPrompt();
+    // Проверяем, достигнута ли цель
+    if (balance >= goal) {
+      goalReached = true;
     }
 
     updateButtonStates();
     updateUI();
+
+    // Если цель не установлена — показываем попап
+    if (!localStorage.getItem('piggybank_goal') && goal === 5.0) {
+      showGoalPrompt();
+    }
   } catch (_) {
     loadGoal();
   }
 }
 
-// ---------- СОХРАНЕНИЕ НА СЕРВЕР ----------
+// ---------- СОХРАНЕНИЕ НА СЕРВЕР (ПЕРЕДАЁМ amount) ----------
 function saveToServer(amount) {
   if (!telegramId) return;
   const initData = window.Telegram?.WebApp?.initData || '';
   fetch('https://piggybank-one-weld.vercel.app/api/deposit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ telegramId, balance, goal, amount, initData })
-  }).catch(() => {});
+    body: JSON.stringify({ telegramId, amount, initData })
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log('✅ Баланс сохранён на сервере:', data);
+    // Обновляем баланс и флаг из ответа сервера
+    if (data.balance !== undefined) {
+      balance = data.balance;
+    }
+    if (data.goalReached !== undefined) {
+      goalReached = data.goalReached;
+      updateButtonStates();
+    }
+    updateUI();
+  })
+  .catch(() => {});
 }
 
 // ---------- СОХРАНЕНИЕ ЦЕЛИ ----------
@@ -99,7 +107,6 @@ async function saveGoalToServer() {
 
 // ---------- ОБНОВЛЕНИЕ КНОПОК ----------
 function updateButtonStates() {
-  // Название кнопки всегда "🏦 Вывести", меняется только цвет
   withdrawBtn.textContent = '🏦 Вывести';
   if (goalReached) {
     withdrawBtn.classList.remove('btn-secondary');
@@ -119,9 +126,8 @@ function handleWithdraw() {
   if (goalReached) {
     balance = 0;
     goalReached = false;
-    localStorage.setItem('piggybank_goal_reached', 'false');
     updateButtonStates();
-    saveToServer(0);
+    saveToServer(0); // Отправляем 0 для сброса баланса
     updateUI();
     setTemporaryMessage('💸 Баланс сброшен до 0. Начни копить заново!');
   } else {
@@ -172,7 +178,6 @@ function updateUI() {
 
   if (balance >= goal && !goalReached) {
     goalReached = true;
-    localStorage.setItem('piggybank_goal_reached', 'true');
     updateButtonStates();
     launchConfetti();
     statusMessage.textContent = '🎉 Ура! Вывод доступен! (пока симуляция)';
@@ -258,7 +263,6 @@ function showGoalPrompt() {
     goal = val;
     goalReached = false;
     localStorage.setItem('piggybank_goal', goal.toString());
-    localStorage.setItem('piggybank_goal_reached', 'false');
     overlay.remove();
     updateUI();
     await saveGoalToServer();
