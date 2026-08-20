@@ -92,17 +92,21 @@ app.post('/api/deposit', async (req, res) => {
   try {
     const { telegramId, amount, initData } = req.body;
 
+    // Проверка подписи
     if (!verifyTelegramInitData(initData)) {
       return res.status(401).json({ error: 'Недействительная подпись Telegram' });
     }
 
-    if (!telegramId || !amount || amount <= 0) {
+    // Валидация
+    if (!telegramId || amount === undefined || amount === null || amount < 0) {
       return res.status(400).json({ error: 'Некорректные данные' });
     }
 
+    // Получаем текущие данные пользователя
     const user = await getUserData(telegramId);
     const newBalance = (user.balance || 0) + amount;
 
+    // Обновляем баланс в БД
     const { error } = await supabase
       .from('users')
       .update({ balance: newBalance, updated_at: new Date().toISOString() })
